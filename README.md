@@ -16,6 +16,20 @@
 
 本项目希望把这些经验沉淀成一套简单、透明、可复用的 Agentic Development Workflow。
 
+## 在线工具
+
+本仓库包含一个真实可用的离线网页工具箱：[`tools/index.html`](tools/index.html)。
+
+它支持：
+
+- **Prompt Builder**：根据项目目标生成结构化 Agent Prompt；
+- **Task Planner**：生成 Agentic Development 任务计划；
+- **Agent Fit Score**：评估任务是否适合交给 Agent 辅助；
+- **Release Guard**：生成公开发布前安全检查清单；
+- **Markdown Export**：将结果导出为 Markdown 文件。
+
+工具完全在浏览器本地运行，不依赖后端，也不会上传输入内容。
+
 ## 工作流概览
 
 ```mermaid
@@ -112,6 +126,7 @@ flowchart LR
 │   └── index.html
 ├── docs/
 │   ├── evaluation.md
+│   ├── innovation.md
 │   ├── proof-materials.md
 │   ├── prompt-patterns.md
 │   ├── public-release-checklist.md
@@ -121,6 +136,9 @@ flowchart LR
 │   ├── debug-case.md
 │   ├── mini-project-case.md
 │   └── requirement-template.md
+├── tools/
+│   ├── README.md
+│   └── index.html
 ├── LICENSE
 └── .gitignore
 ```
@@ -129,11 +147,12 @@ flowchart LR
 
 你可以把本仓库作为模板，用于任意小型项目：
 
-1. 在 `examples/requirement-template.md` 中写下项目需求；
-2. 使用 `examples/agent-task-plan.md` 生成任务计划；
-3. 按照 `docs/workflow.md` 执行开发流程；
-4. 遇到问题时参考 `examples/debug-case.md` 组织 Debug 信息；
-5. 发布前使用 `docs/public-release-checklist.md` 做公开仓库检查。
+1. 打开 `tools/index.html` 使用 Prompt Builder 生成 Agent 指令；
+2. 在 `examples/requirement-template.md` 中写下项目需求；
+3. 使用 Task Planner 或 `examples/agent-task-plan.md` 生成任务计划；
+4. 按照 `docs/workflow.md` 执行开发流程；
+5. 遇到问题时参考 `examples/debug-case.md` 组织 Debug 信息；
+6. 发布前使用 Release Guard 或 `docs/public-release-checklist.md` 做公开仓库检查。
 
 ## 常用工具
 
@@ -156,6 +175,18 @@ flowchart LR
 | 文档整理 | 发布前集中补文档 | 开发中同步沉淀 | 提高交付完整度 |
 
 详细评估见：[`docs/evaluation.md`](docs/evaluation.md)。
+
+## 创新点
+
+本项目加入了一些面向 AI Agent 开发流程的实验性设计：
+
+- **Agent Fit Score**：在执行前判断任务是否适合交给 Agent；
+- **Human-in-the-loop Gates**：把人工确认设计成固定流程关卡；
+- **Prompt as Artifact**：把提示词作为可维护资产沉淀；
+- **Release Guard**：关注公开发布前的安全和真实性检查；
+- **Local-first Toolkit**：工具本地运行，避免把早期想法和调试信息上传到外部服务。
+
+详见：[`docs/innovation.md`](docs/innovation.md)。
 
 ## 安全说明
 

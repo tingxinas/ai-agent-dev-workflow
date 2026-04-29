@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agentic Dev Toolkit</title>
+  <style>
+    :root {
+      --bg: #f6f2ea;
+      --panel: #fffaf1;
+      --ink: #171717;
+      --muted: #70685d;
+      --line: #171717;
+      --soft: #e8dcc7;
+      --ok: #1f7a3f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    header {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 44px 20px 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 6vw, 68px);
+      letter-spacing: -0.06em;
+      line-height: 1.02;
+    }
+
+    .subtitle {
+      max-width: 820px;
+      color: var(--muted);
+      font-size: 18px;
+      margin: 18px 0 0;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 20px 20px 72px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1.5px solid var(--line);
+      padding: 20px;
+    }
+
+    .sticky {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+    }
+
+    label {
+      display: block;
+      font-weight: 800;
+      margin: 14px 0 8px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1.5px solid var(--line);
+      background: #fffdf8;
+      color: var(--ink);
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    textarea { min-height: 110px; resize: vertical; }
+
+    button {
+      border: 1.5px solid var(--line);
+      background: #111;
+      color: #fff;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    button.secondary {
+      background: #fffdf8;
+      color: var(--ink);
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      background: #fffdf8;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    .tab.active {
+      background: #111;
+      color: #fff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid #bfb39f;
+      padding: 16px;
+      background: #fffdf8;
+    }
+
+    .card h3 { margin: 0 0 8px; }
+    .card p { margin: 0; color: var(--muted); }
+
+    .output {
+      white-space: pre-wrap;
+      background: #111;
+      color: #f7f0e4;
+      padding: 18px;
+      border: 1.5px solid #111;
+      min-height: 280px;
+      overflow: auto;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      background: #fffdf8;
+      margin: 4px 4px 0 0;
+      font-size: 14px;
+    }
+
+    .score {
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1;
+      margin: 10px 0;
+    }
+
+    .ok { color: var(--ok); }
+    .muted { color: var(--muted); }
+
+    .hidden { display: none; }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      .sticky { position: static; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Agentic Dev Toolkit</h1>
+    <p class="subtitle">一个离线可用的 AI Agent 开发工作流工具箱：生成高质量 Prompt、拆解项目任务、评估 Agent 适配度、检查公开发布风险，并导出 Markdown。</p>
+  </header>
+
+  <main>
+    <aside class="panel sticky">
+      <div class="tabs" id="tabs"></div>
+
+      <label for="projectName">项目名称</label>
+      <input id="projectName" value="个人任务看板" />
+
+      <label for="projectGoal">项目目标 / 问题描述</label>
+      <textarea id="projectGoal">做一个简单的个人任务看板，可以添加任务、标记完成、按状态筛选，并保存到本地浏览器。</textarea>
+
+      <label for="stack">技术栈</label>
+      <input id="stack" value="HTML, CSS, JavaScript" />
+
+      <label for="constraints">约束条件</label>
+      <textarea id="constraints">不接入后端，不上传用户数据，移动端可用，代码保持简单。</textarea>
+
+      <label for="agentMode">Agent 模式</label>
+      <select id="agentMode">
+        <option value="clarify">Clarify - 需求澄清</option>
+        <option value="plan">Plan - 任务拆解</option>
+        <option value="build">Build - 代码实现</option>
+        <option value="debug">Debug - 问题定位</option>
+        <option value="review">Review - 代码审查</option>
+        <option value="ship">Ship - 发布检查</option>
+      </select>
+
+      <button id="generate">生成内容</button>
+      <button class="secondary" id="copy">复制结果</button>
+      <button class="secondary" id="download">下载 Markdown</button>
+    </aside>
+
+    <section>
+      <div class="panel" id="toolIntro"></div>
+      <div style="height: 16px"></div>
+      <div class="panel">
+        <h2 id="outputTitle">输出</h2>
+        <div class="output" id="output"></div>
+      </div>
+      <div style="height: 16px"></div>
+      <div class="grid" id="insights"></div>
+    </section>
+  </main>
+
+  <script>
+    const tools = [
+      {
+        id: "prompt",
+        name: "Prompt Builder",
+        title: "Prompt Builder：生成结构化 Agent 指令",
+        desc: "根据项目目标、技术栈和约束条件，生成可直接复制给 AI Agent 的高质量提示词。"
+      },
+      {
+        id: "planner",
+        name: "Task Planner",
+        title: "Task Planner：拆解开发任务",
+        desc: "把模糊需求拆成可执行任务、验收标准和风险点，适合项目启动前使用。"
+      },
+      {
+        id: "score",
+        name: "Agent Fit Score",
+        title: "Agent Fit Score：评估任务适配度",
+        desc: "根据任务特征评估是否适合交给 Agent，避免把高风险任务直接自动化。"
+      },
+      {
+        id: "release",
+        name: "Release Guard",
+        title: "Release Guard：公开发布检查",
+        desc: "生成 GitHub 公开发布前的安全检查清单，减少敏感信息泄露风险。"
+      }
+    ];
+
+    const state = { active: "prompt" };
+
+    const $ = (id) => document.getElementById(id);
+
+    function values() {
+      return {
+        name: $("projectName").value.trim() || "未命名项目",
+        goal: $("projectGoal").value.trim() || "暂无目标描述",
+        stack: $("stack").value.trim() || "未指定",
+        constraints: $("constraints").value.trim() || "暂无约束",
+        mode: $("agentMode").value
+      };
+    }
+
+    function renderTabs() {
+      $("tabs").innerHTML = tools.map(tool => `<button class="tab ${tool.id === state.active ? "active" : ""}" data-id="${tool.id}">${tool.name}</button>`).join("");
+      document.querySelectorAll(".tab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.active = btn.dataset.id;
+          render();
+        });
+      });
+    }
+
+    function modeName(mode) {
+      return {
+        clarify: "需求澄清",
+        plan: "任务拆解",
+        build: "代码实现",
+        debug: "问题定位",
+        review: "代码审查",
+        ship: "发布检查"
+      }[mode];
+    }
+
+    function buildPrompt(v) {
+      const base = `# ${modeName(v.mode)} Prompt\n\n项目名称：${v.name}\n\n项目目标：\n${v.goal}\n\n技术栈：${v.stack}\n\n约束条件：\n${v.constraints}\n`;
+      const templates = {
+        clarify: `${base}\n请先不要写代码。请帮我澄清以下内容：\n1. 目标用户\n2. 要解决的核心问题\n3. 核心功能\n4. 非目标范围\n5. 验收标准\n6. 主要风险\n\n要求：输出结构化 Markdown，不要泛泛而谈。`,
+        plan: `${base}\n请把这个项目拆成 5-7 个可执行任务。每个任务包含：\n- 目标\n- 涉及文件或模块\n- 实现要点\n- 验收标准\n- 风险点\n\n要求：按用户可见功能拆分，不要拆成过细的技术动作。`,
+        build: `${base}\n请基于上述需求给出实现方案。\n要求：\n1. 先说明文件结构\n2. 再说明核心实现思路\n3. 给出关键代码\n4. 补充错误处理\n5. 最后给出验证步骤\n\n注意：不要引入不必要依赖，不要超出约束条件。`,
+        debug: `${base}\n下面是一个待排查问题，请按 Debug 流程分析。\n\n现象：请在这里填写\n复现步骤：请在这里填写\n期望结果：请在这里填写\n实际结果：请在这里填写\n报错日志：请在这里填写\n相关代码：请在这里填写\n\n请输出：\n1. 可能原因，按概率排序\n2. 最小验证步骤\n3. 推荐修复方案\n4. 修复后的测试方式`,
+        review: `${base}\n请审查这次项目实现，重点关注：\n1. 是否满足需求\n2. 是否存在边界条件遗漏\n3. 是否有安全或隐私风险\n4. 是否引入不必要复杂度\n5. 是否需要补充测试或文档\n\n要求：只指出重要问题，并给出可执行修改建议。`,
+        ship: `${base}\n请生成公开发布前检查清单，覆盖：\n1. 敏感信息检查\n2. README 完整性\n3. 截图和示例数据脱敏\n4. 运行方式验证\n5. License 和依赖检查\n6. 发布后检查\n\n要求：输出可勾选 Markdown 清单。`
+      };
+      return templates[v.mode];
+    }
+
+    function buildPlan(v) {
+      return `# ${v.name} - Agentic Task Plan\n\n## 目标\n${v.goal}\n\n## 技术栈\n${v.stack}\n\n## 约束\n${v.constraints}\n\n## 任务拆解\n\n| 阶段 | 任务 | Agent 职责 | 人工审核点 | 验收标准 |\n| --- | --- | --- | --- | --- |\n| Clarify | 澄清需求 | 提炼目标、边界、验收标准 | 判断是否符合真实需求 | 需求文档可执行 |\n| Plan | 制定实现计划 | 拆任务、识别依赖和风险 | 调整优先级 | 任务可逐步完成 |\n| Build | 实现核心功能 | 生成初稿、补充错误处理 | 检查业务逻辑和代码质量 | 功能可运行 |\n| Debug | 排查问题 | 分析日志、给出验证路径 | 确认原因和修复范围 | 问题可复现并修复 |\n| Review | 代码审查 | 列出风险和遗漏 | 决定是否合并 | 无明显安全和逻辑问题 |\n| Ship | 交付发布 | 整理 README 和检查清单 | 确认无敏感信息 | 可公开发布 |\n\n## 建议里程碑\n\n1. 完成需求澄清和验收标准\n2. 完成最小可用版本\n3. 完成 Debug 和边界测试\n4. 完成文档和发布检查\n5. 发布并记录复盘\n`;
+    }
+
+    function buildScore(v) {
+      const text = `${v.goal} ${v.constraints} ${v.stack}`.toLowerCase();
+      let score = 70;
+      const positives = ["简单", "本地", "静态", "模板", "文档", "页面", "脚本", "工具"];
+      const risks = ["支付", "权限", "密码", "token", "密钥", "生产", "删除", "迁移", "客户", "隐私"];
+      positives.forEach(word => { if (text.includes(word)) score += 4; });
+      risks.forEach(word => { if (text.includes(word)) score -= 8; });
+      score = Math.max(20, Math.min(95, score));
+      const level = score >= 80 ? "高" : score >= 60 ? "中" : "低";
+      return `# Agent Fit Score\n\n项目：${v.name}\n\n适配度评分：${score}/100\n\n适配等级：${level}\n\n## 判断\n\n${score >= 80 ? "这个任务适合 Agent 辅助完成，尤其适合需求拆解、初版生成、文档整理和测试清单。" : score >= 60 ? "这个任务可以让 Agent 参与，但关键逻辑需要人工严格审核。" : "这个任务存在较高风险，不建议直接交给 Agent 自动执行。"}\n\n## 适合交给 Agent 的部分\n\n- 需求澄清\n- 任务拆解\n- 初版代码或文档生成\n- Debug 方向分析\n- 发布检查清单\n\n## 必须人工确认的部分\n\n- 业务规则是否正确\n- 是否涉及隐私或敏感数据\n- 是否存在不可逆操作\n- 是否可以公开发布\n- 最终验收和上线决策\n`;
+    }
+
+    function buildRelease(v) {
+      return `# ${v.name} - Public Release Guard\n\n## 敏感信息\n\n- [ ] 没有 .env 文件\n- [ ] 没有 Token、密钥、密码\n- [ ] 没有真实用户数据\n- [ ] 没有内部接口地址\n- [ ] 没有未脱敏日志\n\n## 文档\n\n- [ ] README 描述准确\n- [ ] 项目目标没有夸大\n- [ ] 运行方式清楚\n- [ ] 已知限制已说明\n- [ ] License 已添加\n\n## 示例和截图\n\n- [ ] 示例数据可公开\n- [ ] 截图没有个人信息\n- [ ] 终端路径没有泄露隐私\n- [ ] 图片文件名无敏感内容\n\n## GitHub 发布后\n\n- [ ] README 渲染正常\n- [ ] 链接可点击\n- [ ] Demo 可访问\n- [ ] 没有上传无关文件\n- [ ] 仓库描述清晰\n`;
+    }
+
+    function outputForActive() {
+      const v = values();
+      if (state.active === "prompt") return buildPrompt(v);
+      if (state.active === "planner") return buildPlan(v);
+      if (state.active === "score") return buildScore(v);
+      return buildRelease(v);
+    }
+
+    function renderInsights() {
+      const v = values();
+      const text = outputForActive();
+      const checks = [
+        { title: "可复制", desc: "输出结果可以直接交给 AI Agent 使用，或保存为项目文档。" },
+        { title: "离线可用", desc: "工具不调用任何外部 API，输入内容只在浏览器本地处理。" },
+        { title: "人机边界", desc: "每个流程都强调人工审核，避免把高风险决策完全交给 Agent。" },
+        { title: "Markdown 导出", desc: "生成结果可以下载为 Markdown，便于提交到仓库或团队文档。" }
+      ];
+      if (state.active === "score") {
+        const score = Number((text.match(/适配度评分：(\d+)/) || [0, 0])[1]);
+        checks.unshift({ title: `评分 ${score}/100`, desc: score >= 80 ? "适合 Agent 辅助" : score >= 60 ? "适合部分辅助" : "需要谨慎使用" });
+      }
+      $("insights").innerHTML = checks.map(item => `<div class="card"><h3>${item.title}</h3><p>${item.desc}</p></div>`).join("");
+    }
+
+    function render() {
+      renderTabs();
+      const tool = tools.find(t => t.id === state.active);
+      $("toolIntro").innerHTML = `<h2>${tool.title}</h2><p class="muted">${tool.desc}</p>`;
+      $("outputTitle").textContent = tool.name + " 输出";
+      $("output").textContent = outputForActive();
+      renderInsights();
+    }
+
+    function downloadMarkdown() {
+      const blob = new Blob([$("output").textContent], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${values().name.replace(/\s+/g, "-")}-${state.active}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    $("generate").addEventListener("click", render);
+    $("copy").addEventListener("click", async () => {
+      await navigator.clipboard.writeText($("output").textContent);
+      $("copy").textContent = "已复制";
+      setTimeout(() => $("copy").textContent = "复制结果", 1200);
+    });
+    $("download").addEventListener("click", downloadMarkdown);
+    ["projectName", "projectGoal", "stack", "constraints", "agentMode"].forEach(id => {
+      $(id).addEventListener("input", render);
+      $(id).addEventListener("change", render);
+    });
+
+    render();
+  </script>
+</body>
+</html>
