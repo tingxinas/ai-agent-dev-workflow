@@ -64,6 +64,39 @@ export function buildReleaseGuard(project) {
   return `# ${project.name} - Release Guard\n\n## 发布前检查\n\n${checks}\n\n## 额外说明\n\n- 高风险文件需要在提交前人工复核。\n- 如果误提交过密钥，应立即废弃旧密钥并清理 Git 历史。\n- 公开仓库中的效果数据应保守、可解释、不过度营销。\n`;
 }
 
+export function calculateRiskMatrix(project) {
+  const text = `${project.goal} ${project.constraints} ${project.stack}`.toLowerCase();
+  const riskHits = riskKeywords.filter((word) => text.includes(word.toLowerCase()));
+  const fitHits = fitKeywords.filter((word) => text.includes(word.toLowerCase()));
+  const hasLocal = text.includes("本地") || text.includes("local") || text.includes("localstorage");
+  const hasSimple = text.includes("简单") || text.includes("原型") || text.includes("静态");
+  const hasData = text.includes("数据") || text.includes("数据库") || text.includes("用户");
+
+  const clarity = Math.min(95, 55 + Math.min(project.goal.length, 120) / 3 + fitHits.length * 3);
+  const automationFit = Math.max(20, Math.min(95, 62 + fitHits.length * 6 - riskHits.length * 8));
+  const dataSensitivity = Math.max(10, Math.min(95, (hasData ? 34 : 18) + riskHits.length * 10 - (hasLocal ? 8 : 0)));
+  const irreversibleRisk = Math.max(8, Math.min(95, riskHits.some((word) => ["删除", "迁移", "支付", "转账", "生产"].includes(word)) ? 72 : 18 + riskHits.length * 6));
+  const humanReviewNeed = Math.max(25, Math.min(98, 45 + riskHits.length * 10 + (hasSimple ? -8 : 6)));
+
+  return [
+    { id: "clarity", label: "需求清晰度", score: Math.round(clarity), type: "positive" },
+    { id: "automation", label: "自动化适合度", score: Math.round(automationFit), type: "positive" },
+    { id: "sensitivity", label: "数据敏感度", score: Math.round(dataSensitivity), type: "risk" },
+    { id: "irreversible", label: "不可逆风险", score: Math.round(irreversibleRisk), type: "risk" },
+    { id: "review", label: "人工审核必要性", score: Math.round(humanReviewNeed), type: "risk" }
+  ];
+}
+
+export function buildReadinessReport(project, fitResult, riskMatrix) {
+  const completed = project.completedStages?.length || 0;
+  const notes = workflowStages
+    .map((stage) => `- **${stage.title} / ${stage.name}**：${project.stageNotes?.[stage.id] || "暂无记录"}`)
+    .join("\n");
+  const risks = riskMatrix.map((item) => `| ${item.label} | ${item.score}/100 | ${item.type === "risk" ? "风险维度" : "能力维度"} |`).join("\n");
+
+  return `# ${project.name} - AI Readiness Report\n\n## 项目概述\n\n${project.goal}\n\n## 技术栈\n\n${project.stack}\n\n## 约束条件\n\n${project.constraints}\n\n## Agent Fit Score\n\n- 评分：${fitResult.score}/100\n- 等级：${fitResult.level}\n- 建议：${fitResult.recommendation}\n\n## Risk Matrix\n\n| 维度 | 分数 | 类型 |\n| --- | --- | --- |\n${risks}\n\n## 工作流进度\n\n已完成 ${completed}/${workflowStages.length} 个阶段。\n\n${notes}\n\n## 推荐下一步\n\n1. 先补齐未完成阶段的交付物和人工审核意见。\n2. 对高风险维度增加明确的人工确认步骤。\n3. 使用 Release Guard 检查公开发布风险。\n4. 将本报告和 Task Plan 一起保存到项目文档中。\n`;
+}
+
 export function downloadMarkdown(filename, content) {
   const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
   const url = URL.createObjectURL(blob);
